@@ -1,4 +1,28 @@
-import 'dotenv/config';
-import { connectDB } from './config/db.js';
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
 
-connectDB();
+import { connectDB } from './config/db.js';
+import authRoutes from './routes/authRoutes.js';
+import { errorHandler, notFound } from './middleware/errorHandler.js';
+
+const app = express();
+const server = http.createServer(app);
+
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(express.json());
+
+app.use('/api/auth', authRoutes);
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+async function start(): Promise<void> {
+  await connectDB();
+  server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+}
+
+start();

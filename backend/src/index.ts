@@ -18,11 +18,11 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 async function start(): Promise<void> {
   await connectDB();
-  server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+  server.listen(PORT, '0.0.0.0', () => {console.log(`Server running on port ${PORT}`);});
 }
 
 start();

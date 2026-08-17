@@ -3,31 +3,47 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AuthState } from './authTypes';
 import { signupUser, signinUser, logoutUser } from './authThunks';
 
+
+
 const STORAGE_KEY = 'ari_auth';
 
 function loadPersisted(): Pick<AuthState, 'user' | 'accessToken' | 'refreshToken'> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw =
+      localStorage.getItem(STORAGE_KEY) ||
+      sessionStorage.getItem(STORAGE_KEY);
+
     if (!raw) throw new Error('none');
+
     return JSON.parse(raw);
   } catch {
-    return { user: null, accessToken: null, refreshToken: null };
+    return {
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+    };
   }
 }
 
-function persist(state: AuthState) {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      user: state.user,
-      accessToken: state.accessToken,
-      refreshToken: state.refreshToken,
-    })
-  );
+function persist(state: AuthState, rememberMe: boolean) {
+  const data = JSON.stringify({
+    user: state.user,
+    accessToken: state.accessToken,
+    refreshToken: state.refreshToken,
+  });
+
+  if (rememberMe) {
+    localStorage.setItem(STORAGE_KEY, data);
+    sessionStorage.removeItem(STORAGE_KEY);
+  } else {
+    sessionStorage.setItem(STORAGE_KEY, data);
+    localStorage.removeItem(STORAGE_KEY);
+  }
 }
 
 function clearPersisted() {
   localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
 }
 
 const initialState: AuthState = {
@@ -46,7 +62,9 @@ const authSlice = createSlice({
     },
     tokenRefreshed(state, action: PayloadAction<string>) {
       state.accessToken = action.payload;
-      persist(state);
+      // Keep the token in whichever storage was originally chosen.
+      const rememberMe = localStorage.getItem(STORAGE_KEY) !== null;
+      persist(state, rememberMe);
     },
     loggedOut(state) {
       state.user = null;
@@ -80,7 +98,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.accessToken = action.payload.accessToken;
         state.refreshToken = action.payload.refreshToken;
-        persist(state);
+        persist(state, action.meta.arg.rememberMe);
       })
       .addCase(signinUser.rejected, (state, action) => {
         state.status = 'failed';

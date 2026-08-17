@@ -30,28 +30,36 @@ function signRefreshToken(userId: string): string {
 }
 
 export async function registerUser(data: RegisterRequest): Promise<PublicUser> {
-  const { name, email, password } = data;
-  if (!name || !email || !password) {
-    throw new AppError('Name, email, and password are all required', 400);
+  const { name, username, email, password } = data;
+  if (!name || !username || !email || !password) {
+    throw new AppError('Name, username, email, and password are all required', 400);
   }
 
-  const existing = await User.findOne({ email });
-  if (existing) {
+  const existingEmail = await User.findOne({ email });
+  if (existingEmail) {
     throw new AppError('An account with this email already exists', 400);
   }
 
+  const existingUsername = await User.findOne({
+    username: username.toLowerCase(),
+  });
+
+  if (existingUsername) {
+    throw new AppError('That username is already taken', 400);
+  }
+
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await User.create({ name, email, password: hashedPassword });
-  return { id: user.id, name: user.name, email: user.email };
+  const user = await User.create({ name, username: username.toLowerCase(), email, password: hashedPassword });
+  return { id: user.id, name: user.name, username: user.username, email: user.email };
 }
 
 export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
-  const { email, password } = data;
-  const user = await User.findOne({ email });
-  if (!user) throw new AppError('Invalid email or password', 401);
+  const { username, password } = data;
+  const user = await User.findOne({ username: username.toLowerCase(), });
+  if (!user) throw new AppError('Invalid username or password', 401);
 
   const passwordMatches = await user.comparePassword(password);
-  if (!passwordMatches) throw new AppError('Invalid email or password', 401);
+  if (!passwordMatches) throw new AppError('Invalid username or password', 401);
 
   const accessToken = signAccessToken(user.id);
   const refreshToken = signRefreshToken(user.id);
@@ -65,7 +73,7 @@ export async function loginUser(data: LoginRequest): Promise<LoginResponse> {
     message: 'Login successful',
     accessToken,
     refreshToken,
-    user: { id: user.id, name: user.name, email: user.email },
+    user: { id: user.id, name: user.name, username: user.username, email: user.email },
   };
 }
 

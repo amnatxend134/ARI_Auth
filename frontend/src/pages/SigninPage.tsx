@@ -44,12 +44,12 @@ export default function SigninPage() {
   const navigate = useNavigate();
   const { status, error } = useAppSelector((s) => s.auth);
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const canSubmit = email.trim().length > 0 && password.length > 0 && status !== 'loading';
+  const canSubmit = username.trim().length > 0 && password.length > 0 && status !== 'loading';
 
   useEffect(() => { dispatch(resetAuthStatus()); }, [dispatch]);
   useEffect(() => { if (status === 'succeeded') navigate('/dashboard'); }, [status, navigate]);
@@ -57,7 +57,7 @@ export default function SigninPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    dispatch(signinUser({ email: email.trim(), password }));
+    dispatch(signinUser({ username: username.trim(), password, rememberMe, }));
   }
 
   return (
@@ -87,9 +87,9 @@ export default function SigninPage() {
             <div style={{ position: 'relative' }}>
               <span style={iconInInputStyle}><PersonIcon /></span>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 placeholder="Username"
                 style={{ ...inputStyle, paddingLeft: '2.5rem' }}
              

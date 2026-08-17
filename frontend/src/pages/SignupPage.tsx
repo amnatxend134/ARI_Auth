@@ -49,6 +49,7 @@ export default function SignupPage() {
   const { status, error } = useAppSelector((s) => s.auth);
 
   const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -60,7 +61,7 @@ export default function SignupPage() {
   const allRulesPass = Object.values(rules).every(Boolean);
   const passwordsMatch = password === confirm;
   const canSubmit =
-    name.trim().length > 0 && isEmailValid(email) && allRulesPass && passwordsMatch && status !== 'loading';
+    name.trim().length > 0 && username.trim().length > 0 && isEmailValid(email) && allRulesPass && passwordsMatch && status !== 'loading';
 
   useEffect(() => { dispatch(resetAuthStatus()); }, [dispatch]);
   useEffect(() => { if (status === 'succeeded') navigate('/signin'); }, [status, navigate]);
@@ -68,7 +69,7 @@ export default function SignupPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSubmit) return;
-    dispatch(signupUser({ name: name.trim(), email: email.trim(), password }));
+    dispatch(signupUser({ name: name.trim(), username: username.trim(), email: email.trim(), password }));
   }
 
   return (
@@ -97,12 +98,17 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
             <div>
               <label style={labelStyle}>Full Name</label>
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Daniel Gallego" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+            </div>
+
+            <div>
+            <label style={labelStyle}>Username</label>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
             </div>
 
             <div>
               <label style={labelStyle}>Email Address</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hello@reallygreatsite.com" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="" style={inputStyle} onFocus={focusInput} onBlur={blurInput} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>

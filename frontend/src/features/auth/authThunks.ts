@@ -4,13 +4,15 @@ import type { LoginResponse, RegisterResponse } from './authTypes';
 
 interface SignupArgs {
   name: string;
+  username: string;
   email: string;
   password: string;
 }
 
 interface SigninArgs {
-  email: string;
+  username: string;
   password: string;
+  rememberMe: boolean;
 }
 
 function extractError(err: any): string {
@@ -33,7 +35,7 @@ export const signinUser = createAsyncThunk<LoginResponse, SigninArgs, { rejectVa
   'auth/signin',
   async (payload, { rejectWithValue }) => {
     try {
-      const { data } = await api.post<LoginResponse>('/auth/login', payload);
+      const { data } = await api.post<LoginResponse>('/auth/login', { username: payload.username, password: payload.password,});
       return data;
     } catch (err) {
       return rejectWithValue(extractError(err));
